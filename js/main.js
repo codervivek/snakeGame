@@ -1,7 +1,20 @@
 var canvas = document.getElementById('game');
 var ctx = canvas.getContext('2d');
 
+var play=true;
 
+var score = 0;
+
+var playButton = document.getElementById('play');
+playButton.onclick = ((e)=>{
+    play=play?false:true;
+    if(play){
+        playButton.innerHTML="PAUSE";
+    }
+    else{
+        playButton.innerHTML="PLAY";
+    }
+});
 
 var width = canvas.width = window.innerWidth;
 var height = canvas.height = window.innerHeight-36;
@@ -121,51 +134,73 @@ function drawFood() {
 
 snake.prototype.eatFood = function() {
     for(var i=0; i < foods.length; i++){
-        if(((this.hd.x>=foods[i].x)&&(this.hd.x<foods[i].x+5))&&(((this.hd.y > foods[i].y)&&((this.hd.y) < foods[i].y+8))||((this.hd.y + 10 > foods[i].y)&&((this.hd.y + 10 < foods[i].y+8)))))
+        if(((this.hd.x>=foods[i].x)&&(this.hd.x<foods[i].x+8))&&(((this.hd.y > foods[i].y)&&((this.hd.y) < foods[i].y+8))||((this.hd.y + 10 > foods[i].y)&&((this.hd.y + 10 < foods[i].y+8)))))
         {
             foods.splice(i,1);
             this.addBody(5);
+            score++;
+            document.getElementById("score").innerHTML=score;
         }
-        else if((((this.hd.y>=foods[i].y)&&(this.hd.y<foods[i].y+5)))&&(((this.hd.x > foods[i].x)&&((this.hd.x) < foods[i].x+8))||((this.hd.x + 10 > foods[i].x)&&((this.hd.x + 10 < foods[i].x+8)))))
+        else if((((this.hd.y>=foods[i].y)&&(this.hd.y<foods[i].y+8)))&&(((this.hd.x > foods[i].x)&&((this.hd.x) < foods[i].x+8))||((this.hd.x + 10 > foods[i].x)&&((this.hd.x + 10 < foods[i].x+8)))))
         {
             foods.splice(i,1);
             this.addBody(5);
+            score++;
+            document.getElementById("score").innerHTML=score;
         }
     }
 };
+
+function gameover() {
+    foods = [];
+    testSnake = new snake(1700, 100, -5, 0 ,50);
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillRect(0,0,width,height);
+    ctx.fillStyle = "#2196F3";
+    ctx.fillRect(width*0.25,height*0.25,width*0.5,height*0.5);
+    ctx.fillStyle = 'rgba(0,0,0,0.8)';
+    ctx.font = '300px serif';
+    ctx.fillText("GAME OVER",width*0.3,height*0.6,width*0.4);
+    play=false;
+    playButton.innerHTML="Play Again";
+}
 
 snake.prototype.collisionTest = function() {
     for(var i=3; i<this.bd.length;i++){
         if(((this.hd.x>this.bd[i].x)&&(this.hd.x<this.bd[i].x+6))&&(((this.hd.y > this.bd[i].y)&&((this.hd.y) < this.bd[i].y+10))||((this.hd.y + 10 > this.bd[i].y)&&((this.hd.y + 10 < this.bd[i].y+10)))))
         {
-            alert("Game over");
-            document.location.reload();
+            gameover();
         }
         else if((((this.hd.y>this.bd[i].y)&&(this.hd.y<this.bd[i].y+6)))&&(((this.hd.x > this.bd[i].x)&&((this.hd.x) < this.bd[i].x+8))||((this.hd.x + 10 > this.bd[i].x)&&((this.hd.x + 10 < this.bd[i].x+10)))))
         {
-            alert("Game over");
-            document.location.reload();
+            gameover();
         }
        }
 }
 
+
+
 function loop() {
-    ctx.fillStyle = 'rgba(0,0,0,1)';
-    ctx.fillRect(0,0,width,height);
-    
-    testSnake.draw();
-    testSnake.update();
-    
-    testSnake.collisionTest();
-    
-    generateFood(500);
-    drawFood();
-    
-    
-    testSnake.eatFood();
+    if(play){
+        ctx.fillStyle = 'rgba(0,0,0,1)';
+        ctx.fillRect(0,0,width,height);
+        ctx
+
+        testSnake.draw();
+        testSnake.update();
+
+        generateFood(50);
+        drawFood();
+
+
+        testSnake.eatFood();
+        
+        testSnake.collisionTest();
+    }
     //window.setInterval(loop,1000);
     requestAnimationFrame(loop);
 }
+
 
 window.onload=loop();
 
