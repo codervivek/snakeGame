@@ -1,7 +1,26 @@
+var color = "#2196F3";
+var speed = 5;
+var foodNo = 50;
+var snakebdw = 10;
+var snakebdh = 10;
+var foodsize = 8;
+
+
+document.getElementsByTagName('body').color = color;
+
 var canvas = document.getElementById('game');
 var ctx = canvas.getContext('2d');
 
 var play=true;
+
+var allcookies=document.cookie;
+console.log(allcookies);
+if(allcookies)
+    var highscore = allcookies.split('=')[1];
+else
+    highscore = 0;
+
+document.getElementById('highscore').innerHTML = highscore;
 
 var score = 0;
 
@@ -12,7 +31,14 @@ playButton.onclick = ((e)=>{
         playButton.innerHTML="PAUSE";
     }
     else{
-        playButton.innerHTML="PLAY";
+        playButton.innerHTML="RESUME";
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.fillRect(0,0,width,height);
+        ctx.fillStyle = color;
+        ctx.fillRect(width*0.25,height*0.25,width*0.5,height*0.5);
+        ctx.fillStyle = 'rgba(0,0,0,0.8)';
+        ctx.font = '300px serif';   
+        ctx.fillText("PAUSED",width*0.3,height*0.6,width*0.4);
     }
 });
 
@@ -33,7 +59,7 @@ var head = function(x, y, velX, velY) {
 };
 
 var body = function(par) {
-    this.x=par.x+5;
+    this.x=par.x+speed;
     this.y=par.y;
     this.par = par; // body just above the current body i.e parent
 };
@@ -63,12 +89,12 @@ snake.prototype.addBody = function( n ) {
 
 snake.prototype.draw = function() {
     ctx.beginPath();
-    ctx.fillStyle = "#2196F3";
-    ctx.rect(this.hd.x, this.hd.y, 10, 10);
+    ctx.fillStyle = color;
+    ctx.rect(this.hd.x, this.hd.y, snakebdw, snakebdh);
     //ctx.rect(this.bd[0].h.x +100,this.bd[0].par.y +100, 70,70 );
     //ctx.fill();
     for(var i=0 ; i < this.bd.length; i++){
-        ctx.rect(this.bd[i].x, this.bd[i].y, 10, 10);
+        ctx.rect(this.bd[i].x, this.bd[i].y, snakebdw, snakebdh);
     }
     ctx.fill();
     ctx.closePath();
@@ -85,7 +111,7 @@ snake.prototype.update = function() {
     this.hd.y = (this.hd.y+this.hd.velY + height) % height;
 };
 
-var testSnake = new snake(1700, 100, -5, 0 ,50);
+var testSnake = new snake(1700, 100, -speed, 0 ,50);
 
 
 function keyUpHandler(e) {
@@ -120,9 +146,9 @@ function generateFood( n ) {
 function drawFood() {
     for(var i=0; i < foods.length; i++){
         ctx.beginPath();
-        ctx.fillStyle = "#2196F3";
+        ctx.fillStyle = color;
         if(foods[i].t == 'a')
-        ctx.fillRect(foods[i].x, foods[i].y, 8, 8);
+        ctx.fillRect(foods[i].x, foods[i].y, foodsize, foodsize);
         else if(foods[i].t == 'b')
         ctx.fillRect(foods[i].x, foods[i].y, 6, 6);
         else if(foods[i].t == 'c')
@@ -134,14 +160,14 @@ function drawFood() {
 
 snake.prototype.eatFood = function() {
     for(var i=0; i < foods.length; i++){
-        if(((this.hd.x>=foods[i].x)&&(this.hd.x<foods[i].x+8))&&(((this.hd.y > foods[i].y)&&((this.hd.y) < foods[i].y+8))||((this.hd.y + 10 > foods[i].y)&&((this.hd.y + 10 < foods[i].y+8)))))
+        if(((this.hd.x>=foods[i].x)&&(this.hd.x<foods[i].x+foodsize))&&(((this.hd.y > foods[i].y)&&((this.hd.y) < foods[i].y+foodsize))||((this.hd.y + snakebdh > foods[i].y)&&((this.hd.y + snakebdh < foods[i].y+foodsize)))))
         {
             foods.splice(i,1);
             this.addBody(5);
             score++;
             document.getElementById("score").innerHTML=score;
         }
-        else if((((this.hd.y>=foods[i].y)&&(this.hd.y<foods[i].y+8)))&&(((this.hd.x > foods[i].x)&&((this.hd.x) < foods[i].x+8))||((this.hd.x + 10 > foods[i].x)&&((this.hd.x + 10 < foods[i].x+8)))))
+        else if((((this.hd.y>=foods[i].y)&&(this.hd.y<foods[i].y+foodsize)))&&(((this.hd.x > foods[i].x)&&((this.hd.x) < foods[i].x+foodsize))||((this.hd.x + snakebdw > foods[i].x)&&((this.hd.x + snakebdw < foods[i].x+foodsize)))))
         {
             foods.splice(i,1);
             this.addBody(5);
@@ -153,43 +179,54 @@ snake.prototype.eatFood = function() {
 
 function gameover() {
     foods = [];
-    testSnake = new snake(1700, 100, -5, 0 ,50);
+    testSnake = new snake(1700, 100, -speed, 0 ,50);
     ctx.fillStyle = 'rgba(0,0,0,0.5)';
     ctx.fillRect(0,0,width,height);
-    ctx.fillStyle = "#2196F3";
+    ctx.fillStyle = color;
     ctx.fillRect(width*0.25,height*0.25,width*0.5,height*0.5);
     ctx.fillStyle = 'rgba(0,0,0,0.8)';
     ctx.font = '300px serif';
     ctx.fillText("GAME OVER",width*0.3,height*0.6,width*0.4);
     play=false;
     playButton.innerHTML="Play Again";
+    if(score>highscore){
+        document.cookie="highScore="+score;
+        document.getElementById('highscore').innerHTML = score;
+        Materialize.toast("New Highscore:" + score ,2000);
+    }
+    score=0;
 }
 
 snake.prototype.collisionTest = function() {
     for(var i=3; i<this.bd.length;i++){
-        if(((this.hd.x>this.bd[i].x)&&(this.hd.x<this.bd[i].x+6))&&(((this.hd.y > this.bd[i].y)&&((this.hd.y) < this.bd[i].y+10))||((this.hd.y + 10 > this.bd[i].y)&&((this.hd.y + 10 < this.bd[i].y+10)))))
+        if(((this.hd.x>this.bd[i].x)&&(this.hd.x<this.bd[i].x+6))&&(((this.hd.y > this.bd[i].y)&&((this.hd.y) < this.bd[i].y+snakebdh))||((this.hd.y + snakebdh > this.bd[i].y)&&((this.hd.y + snakebdh < this.bd[i].y+snakebdh)))))
         {
             gameover();
         }
-        else if((((this.hd.y>this.bd[i].y)&&(this.hd.y<this.bd[i].y+6)))&&(((this.hd.x > this.bd[i].x)&&((this.hd.x) < this.bd[i].x+8))||((this.hd.x + 10 > this.bd[i].x)&&((this.hd.x + 10 < this.bd[i].x+10)))))
+        else if((((this.hd.y>this.bd[i].y)&&(this.hd.y<this.bd[i].y+6)))&&(((this.hd.x > this.bd[i].x)&&((this.hd.x) < this.bd[i].x+foodsize))||((this.hd.x + snakebdw > this.bd[i].x)&&((this.hd.x + snakebdw < this.bd[i].x+snakebdw)))))
         {
             gameover();
         }
        }
 }
 
-
+function newgame(){
+    foods = [];
+    testSnake = new snake(width-10, height*0.1, -speed, 0 ,50);
+}
 
 function loop() {
     if(play){
         ctx.fillStyle = 'rgba(0,0,0,1)';
         ctx.fillRect(0,0,width,height);
-        ctx
+        
+        
+        
 
         testSnake.draw();
         testSnake.update();
 
-        generateFood(50);
+        generateFood(foodNo);
         drawFood();
 
 
