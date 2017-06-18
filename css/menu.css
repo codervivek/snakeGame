@@ -1,0 +1,21 @@
+#button{
+    display: flex;
+    align-items: center;
+    font-family: 'Poiret One', cursive;
+}
+
+
+#title{
+    font-size: 200px;
+    text-align: center;
+    font-family: 'Permanent Marker', cursive;
+    color:forestgreen;
+    text-shadow: 4px 4px 4px #aaa;
+}
+
+body{
+    background-image: url(../Snake-Background-22.jpg);
+    background-repeat: no-repeat;
+    background-size: 100% 100vh;
+}
+
