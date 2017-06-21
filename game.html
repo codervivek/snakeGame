@@ -17,7 +17,16 @@
                 <a class="waves-effect waves-light btn green" id="play">pause</a>
             </div> 
             <div class="col s2">
-                <a class="waves-effect waves-light btn green" id="option">options</a>
+                <a class="waves-effect waves-light btn green" id="option" href="#modal1">options</a>
+                <div id="modal1" class="modal">
+        <div class="modal-content">
+      <p>Going to options will close the current game. Are you sure you want to go options?</p>
+    </div>
+    <div class="modal-footer">
+      <a href="options.html" class="modal-action modal-close waves-effect waves-green btn-flat">Yes</a>
+        <a class="modal-action modal-close waves-effect waves-green btn-flat">No</a>
+    </div>
+  </div>
             </div>
                 <div class="col s2 offset-s6 right-align">High Score: <span id="highscore"></span>    Score: <span id="score"></span></div>
         </div>
