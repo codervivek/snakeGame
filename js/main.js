@@ -7,19 +7,18 @@ var foodsize = 8;
 var lastman = true;
 var multipleplayers;
 
+console.log(localStorage.getItem("nop"));
+
 document.getElementsByTagName('body').color = color[0];
 
 var canvas = document.getElementById('game');
 var ctx = canvas.getContext('2d');
 
 var play=true;
+var highscore=0;
 
-var allcookies=document.cookie;
-console.log(allcookies);
-if(allcookies)
-    var highscore = allcookies.split('=')[1];
-else
-    highscore = 0;
+if(localStorage.getItem("hs"))
+    highscore=parseInt(localStorage.getItem("hs"));
 
 document.getElementById('highscore').innerHTML = highscore;
 
@@ -47,6 +46,7 @@ var width = canvas.width = window.innerWidth;
 var height = canvas.height = window.innerHeight-36;
 
 document.addEventListener("keydown", keyDownHandler, false);
+document.addEventListener("keyup", keyUpHandler, false);
 
 function random(min, max){
     return Math.floor(Math.random()*(max - min + 1) + min);
@@ -83,6 +83,9 @@ var snake = function(x, y, velX, velY, len, color, keyr, keyl, keyu, keyd, name)
     this.keyd = keyd;
     this.score = 0;
     this.name =name;
+    this.mul=1;
+    this.s=1;
+    this.bomb=0;
 };
 
 snake.prototype.addBody = function( n ) {
@@ -97,19 +100,18 @@ snake.prototype.addBody = function( n ) {
 snake.prototype.draw = function() {
     ctx.beginPath();
     ctx.fillStyle = this.color;
-    ctx.rect(this.hd.x, this.hd.y, snakebdw, snakebdh);
-    //ctx.rect(this.bd[0].h.x +100,this.bd[0].par.y +100, 70,70 );
-    //ctx.fill();
+    ctx.rect(this.hd.x, this.hd.y, snakebdw*this.mul, snakebdh*this.mul);
     for(var i=0 ; i < this.bd.length; i++){
-        ctx.rect(this.bd[i].x, this.bd[i].y, snakebdw, snakebdh);
+        ctx.rect(this.bd[i].x, this.bd[i].y, snakebdw*this.mul, snakebdh*this.mul);
     }
+    
     ctx.fill();
     ctx.closePath();
 };
 
 snake.prototype.update = function() {
     
-    for(var i=this.bd.length-1; i>=0 ; i--){
+    for(var i=this.bd.length-1-this.bomb; i>=0 ; i--){
         this.bd[i].x= this.bd[i].par.x;
         this.bd[i].y= this.bd[i].par.y;
     }
@@ -132,6 +134,25 @@ function keyDownHandler(e) {
             var temp = testSnake[i].hd.velY;
             testSnake[i].hd.velY = -testSnake[i].hd.velX;
             testSnake[i].hd.velX = temp;
+        }
+        if((e.keyCode == testSnake[i].keyu)&&(testSnake[i].s!=0)) {
+            testSnake[i].hd.velX=2*testSnake[i].hd.velX;
+            testSnake[i].hd.velY=2*testSnake[i].hd.velY;
+            testSnake[i].s--;
+        }
+        if((e.keyCode==testSnake[i].keyd)&&(testSnake[i].bomb==0)){
+            testSnake[i].bomb++;
+        }
+    }
+};
+
+function keyUpHandler(e) {
+    for(var i=0; i < testSnake.length; i++){
+        
+        if((e.keyCode == testSnake[i].keyu)&&(testSnake[i].s!=1)) {
+            testSnake[i].hd.velX=0.5*testSnake[i].hd.velX;
+            testSnake[i].hd.velY=0.5*testSnake[i].hd.velY;
+            testSnake[i].s++;
         }
     }
 };
@@ -171,34 +192,35 @@ function updatescore() {
     var s='';
     for(var i=0; i < testSnake.length; i++){
         s+="Player "+testSnake[i].name+" : "+testSnake[i].score+" ";
+        if(testSnake[i].score>highscore){
+            document.getElementById('highscore').innerHTML=testSnake[i].score;
+        }
     }
     document.getElementById('score').innerHTML=s;
 }
 
 snake.prototype.eatFood = function() {
     for(var i=0; i < foods.length; i++){
-        if(((this.hd.x>=foods[i].x)&&(this.hd.x<foods[i].x+foodsize))&&(((this.hd.y > foods[i].y)&&((this.hd.y) < foods[i].y+foodsize))||((this.hd.y + snakebdh > foods[i].y)&&((this.hd.y + snakebdh < foods[i].y+foodsize)))))
+        if(((this.hd.x>=foods[i].x)&&(this.hd.x<foods[i].x+foodsize))&&(((this.hd.y > foods[i].y)&&((this.hd.y) < foods[i].y+foodsize))||((this.hd.y + snakebdh*this.mul > foods[i].y)&&((this.hd.y + snakebdh*this.mul < foods[i].y+foodsize)))))
         {
             foods.splice(i,1);
-            this.addBody(5);
+            this.addBody(3);
             this.score++;
-            updatescore();
             this.hd.velX*=1.01;
             this.hd.velY*=1.01;
-            snakebdh*=1.01;
-            snakebdw*=1.01;
-        }
-        else if((((this.hd.y>=foods[i].y)&&(this.hd.y<foods[i].y+foodsize)))&&(((this.hd.x > foods[i].x)&&((this.hd.x) < foods[i].x+foodsize))||((this.hd.x + snakebdw > foods[i].x)&&((this.hd.x + snakebdw < foods[i].x+foodsize)))))
-        {
-            foods.splice(i,1);
-            this.addBody(5);
-            this.score++;
+            this.mul*=1.01;
             updatescore();
             
+        }
+        else if((((this.hd.y>=foods[i].y)&&(this.hd.y<foods[i].y+foodsize)))&&(((this.hd.x > foods[i].x)&&((this.hd.x) < foods[i].x+foodsize))||((this.hd.x + snakebdw*this.mul > foods[i].x)&&((this.hd.x + snakebdw*this.mul < foods[i].x+foodsize)))))
+        {
+            foods.splice(i,1);
+            this.addBody(3);
+            this.score++;
             this.hd.velX*=1.01;
             this.hd.velY*=1.01;
-            snakebdh*=1.01;
-            snakebdw*=1.01;
+            this.mul*=1.01;
+            updatescore();
         }
     }
 };
@@ -230,7 +252,7 @@ snake.prototype.collisionTest = function() {
     
     for(var j=0; j < testSnake.length; j++){
          for(var i=3; i<testSnake[j].bd.length;i++){
-            if(((this.hd.x>testSnake[j].bd[i].x)&&(this.hd.x<testSnake[j].bd[i].x+6))&&(((this.hd.y > testSnake[j].bd[i].y)&&((this.hd.y) < testSnake[j].bd[i].y+snakebdh))||((this.hd.y + snakebdh > testSnake[j].bd[i].y)&&((this.hd.y + snakebdh < testSnake[j].bd[i].y+snakebdh)))))
+            if(((this.hd.x>testSnake[j].bd[i].x)&&(this.hd.x<testSnake[j].bd[i].x+6))&&(((this.hd.y > testSnake[j].bd[i].y)&&((this.hd.y) < testSnake[j].bd[i].y+snakebdh*testSnake[j].mul))||((this.hd.y + snakebdh*this.mul > testSnake[j].bd[i].y)&&((this.hd.y + snakebdh*this.mul < testSnake[j].bd[i].y+snakebdh*testSnake[j].mul)))))
             {
                 if(!(lastman&&(testSnake.length==0))){
                     Materialize.toast("Player "+this.name+" has lost.",2000);
@@ -238,7 +260,7 @@ snake.prototype.collisionTest = function() {
                 }
                 return true;
             }
-            else if((((this.hd.y>testSnake[j].bd[i].y)&&(this.hd.y<testSnake[j].bd[i].y+6)))&&(((this.hd.x > testSnake[j].bd[i].x)&&((this.hd.x) < testSnake[j].bd[i].x+foodsize))||((this.hd.x + snakebdw > testSnake[j].bd[i].x)&&((this.hd.x + snakebdw < testSnake[j].bd[i].x+snakebdw)))))
+            else if(((this.hd.y>testSnake[j].bd[i].y)&&(this.hd.y<testSnake[j].bd[i].y+6))&&(((this.hd.x > testSnake[j].bd[i].x)&&((this.hd.x) < testSnake[j].bd[i].x+snakebdw*testSnake[j].mul))||((this.hd.x + snakebdw*this.mul > testSnake[j].bd[i].x)&&((this.hd.x + snakebdw*this.mul < testSnake[j].bd[i].x+snakebdw*testSnake[j].mul)))))
             {
             if(!(lastman&&(testSnake.length==0))){
 
@@ -250,6 +272,31 @@ snake.prototype.collisionTest = function() {
             
         }
     }
+        for(var j=0; j < testSnake.length; j++){
+         if(((this.hd.x>testSnake[j].hd.x)&&(this.hd.x<testSnake[j].hd.x+6))&&(((this.hd.y > testSnake[j].hd.y)&&((this.hd.y) < testSnake[j].hd.y+snakebdh*testSnake[j].mul))||((this.hd.y + snakebdh*this.mul > testSnake[j].hd.y)&&((this.hd.y + snakebdh*this.mul < testSnake[j].hd.y+snakebdh*testSnake[j].mul)))))
+        {
+            if(!(lastman&&(testSnake.length==0))){
+                Materialize.toast("Player "+this.name+" has lost.",2000);
+
+            }
+            testSnake.splice(j,1);
+            Materialize.toast("Player "+this.name+" has lost.",2000);
+            return true;
+        }
+        else if(((this.hd.y>testSnake[j].hd.y)&&(this.hd.y<testSnake[j].hd.y+6))&&(((this.hd.x > testSnake[j].hd.x)&&((this.hd.x) < testSnake[j].hd.x+snakebdw*testSnake[j].mul))||((this.hd.x + snakebdw*this.mul > testSnake[j].hd.x)&&((this.hd.x + snakebdw*this.mul < testSnake[j].hd.x+snakebdw*testSnake[j].mul)))))
+        {
+        if(!(lastman&&(testSnake.length==0))){
+
+            Materialize.toast("Player "+this.name+" has lost.",2000);
+
+            }
+            testSnake.splice(j,1);
+            Materialize.toast("Player "+this.name+" has lost.",2000);
+            return true;
+        }
+
+
+    }
     
     return false;
 }
@@ -257,16 +304,21 @@ snake.prototype.collisionTest = function() {
 var testSnake;
 function newgame(){
     foods = [];
-    testSnake = [new snake(width*0.9, height*0.1, -speed, 0 ,50, color[random(1,7)], 39, 37, 38, 40, "Vivek"),new snake(width*0.1, height*0.1, speed, 0 ,50, color[random(1,7)], 68, 65, 87, 83, "Raj")];
+    testSnake = [new snake(width*0.9, height*0.1, -speed, 0 ,10, color[random(1,7)], 39, 37, 38, 40, "1"),new snake(width*0.1, height*0.8, speed, 0 ,10, color[random(1,7)], 68, 65, 87, 83, "2"),new snake(width*0.9, height*0.9, -speed, 0 ,10, color[random(1,7)], 76, 74, 73, 75, "3"),new snake(width*0.1, height*0.2, speed, 0 ,10, color[random(1,7)], 102, 100, 104, 98, "4")];
+    for(var i=4-parseInt(localStorage.getItem("nop"))-1;i>=0;i--){
+        testSnake.splice(i,1);
+    }
     if(testSnake.length>1){
         multipleplayers=true;
     }
+    if(localStorage.getItem("hs"))
+    highscore=parseInt(localStorage.getItem("hs"));
         
 }
 
 function loop() {
     if(play){
-        ctx.fillStyle = 'rgba(0,30,0,1)';
+        ctx.fillStyle = 'rgba(0,0,0,1)';
         ctx.fillRect(0,0,width,height);
         generateFood(foodNo);
         drawFood();
@@ -279,7 +331,11 @@ function loop() {
         
             if(testSnake[i].collisionTest()){
                 updatescore();
+                if(testSnake[i].score>highscore){
+                    localStorage.setItem("hs",testSnake[i].score);
+                }
                 testSnake.splice(i,1);
+                
                 if((testSnake.length==1)&&(!lastman)){
                     Materialize.toast("Player "+testSnake[0].name+" has won.",2000);
                     gameover();
